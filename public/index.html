@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Guitar Tabs</title>
+  <link rel="icon" href="icon-48.png" type="image/png" sizes="48x48">
+  <link rel="icon" href="icon-96.png" type="image/png" sizes="96x96">
+  <link rel="apple-touch-icon" href="icon-96.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/">
+      <img src="icon-96.png" alt="" width="26" height="26">
+      Guitar Tabs
+    </a>
+    <button id="upload-button" class="button primary" type="button">Upload tabs</button>
+    <input id="file-input" type="file" multiple accept=".tab,.btab,.crd,.txt,text/plain" hidden>
+  </header>
+
+  <p id="status" class="status" role="status" hidden></p>
+
+  <div class="layout">
+    <nav class="library" aria-label="Your tabs">
+      <h2>Your tabs</h2>
+      <ul id="tab-list"></ul>
+      <p id="library-empty" class="hint" hidden>No tabs yet. Upload a .tab file to start.</p>
+    </nav>
+
+    <main class="main">
+      <section id="welcome" class="welcome" hidden>
+        <h1>Pick a tab from the list</h1>
+        <p>Or add new ones with <strong>Upload tabs</strong>. You can also drop .tab files anywhere on this page.</p>
+      </section>
+
+      <section id="viewer" hidden>
+        <div class="toolbar">
+          <a class="back" href="#/">&larr; All tabs</a>
+          <div class="actions">
+            <button id="source-button" class="button" type="button" aria-pressed="false">Original text</button>
+            <button id="print-button" class="button" type="button">Print</button>
+            <button id="delete-button" class="button danger" type="button">Delete</button>
+          </div>
+        </div>
+        <article class="sheet">
+          <h1 id="sheet-title"></h1>
+          <p id="sheet-notice" class="hint" hidden>No tab staves were found in this file, so it is shown as plain text.</p>
+          <div id="sheet-body"></div>
+          <pre id="sheet-source" class="tab-text" hidden></pre>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <div id="drop-overlay" class="drop-overlay" hidden>Drop tab files to upload</div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

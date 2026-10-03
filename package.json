@@ -1,0 +1,14 @@
+{
+  "name": "guitar-tabs",
+  "version": "1.0.0",
+  "description": "Upload ASCII guitar tab files and view them as drawn tab staves.",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
