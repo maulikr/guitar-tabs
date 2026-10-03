@@ -1,11 +1,29 @@
 # Guitar Tabs
 
-A small web app for your own server. You upload plain-text guitar tab files
-(`.tab`, the kind typed with dashes and numbers) and it shows them as drawn
-tab staves: six lines, the string names on the left, the fret numbers on the
-lines, and bar lines.
+A self-hosted viewer for plain-text (ASCII) guitar tabs. You upload `.tab` or
+`.txt` files, the kind typed with dashes and numbers, and read them in the
+browser as drawn tablature: six lines, the string names on the left, the fret
+numbers on the lines, and bar lines. Each tab also prints as a clean sheet.
 
-It needs Node.js 20 or newer and nothing else. There are no packages to install.
+It turns this:
+
+```
+     Am                        C
+e|:-----0-----------0-------|-----0-----------0-------:|
+B|:---1---1-------1---1-----|---1---1-------1---1-----:|
+G|:-2-------2---2-------2---|-0-------0---0-------0---:|
+D|:-------------------------|-------------------------:|
+A|:-0-----------0-----------|-3-----------3-----------:|
+E|:-------------------------|-------------------------:|
+    1 + 2 + 3 + 4 + 1 + 2 +   1 + 2 + 3 + 4 + 1 + 2 +
+```
+
+into this:
+
+![The app showing an ASCII guitar tab drawn as tablature, with string names, fret numbers, chords and a repeat sign](docs/screenshot.png)
+
+It runs on your own machine, with no account and no subscription. It needs
+Node.js 20 or newer and nothing else. There are no packages to install.
 
 ## Start it
 
