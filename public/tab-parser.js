@@ -11,6 +11,9 @@ const TAB_STOP = 8;
 // its tab characters are expanded was written with other tab stops.
 const MAX_LINE_COLS = 80;
 const MIN_STRINGS = 3;
+// A string line is only taken to be broken in two by a mail program when
+// it is at least this long.
+const MIN_WRAPPED_COLS = 60;
 const MAX_NOTES_ABOVE = 4;
 const MAX_NOTES_BELOW = 3;
 // How far a note line may stick out past the right end of its staff.
@@ -59,7 +62,7 @@ const MAIL_HEADER =
  * @returns {TabDocument}
  */
 export function parseTab(text) {
-  const lines = normalizeLines(text);
+  const lines = joinWrappedLines(normalizeLines(text));
   const infos = lines.map((line) => analyzeLine(line));
   const blocks = findBlocks(lines, infos);
 
@@ -138,6 +141,45 @@ export function normalizeLines(text) {
     lines = lines.filter((_, i) => i % 2 === 0);
   }
   return lines;
+}
+
+/**
+ * Mail programs broke lines after about 72 characters, which cuts a long
+ * string line in two:
+ *
+ *   |-15-14-12----------------------------------------------------------
+ *   --|
+ *
+ * Where neighbouring string lines all stop at the same column and each is
+ * followed by a short leftover, the leftovers are put back.
+ * @param {string[]} lines
+ * @returns {string[]}
+ */
+function joinWrappedLines(lines) {
+  const joined = [];
+  let i = 0;
+  while (i < lines.length) {
+    let pairs = 0;
+    while (isWrappedPair(lines[i], lines[i + 2 * pairs], lines[i + 2 * pairs + 1])) pairs++;
+    if (pairs < MIN_STRINGS) {
+      joined.push(lines[i++]);
+      continue;
+    }
+    for (; pairs > 0; pairs--, i += 2) joined.push(lines[i] + lines[i + 1]);
+  }
+  return joined;
+}
+
+// `first` is the line the run of broken lines starts with: all of them were
+// cut at the same column.
+function isWrappedPair(first, head, tail) {
+  if (head === undefined || tail === undefined) return false;
+  if (head.length < MIN_WRAPPED_COLS || head.length !== first.length || head.endsWith('|')) return false;
+  if (!analyzeLine(head)?.strong) return false;
+  // The leftover is short and holds nothing but the end of a string line:
+  // "--|", "2|", "7(SL)-|".
+  const letters = tail.replace(/\P{L}/gu, '').length;
+  return tail.length * 2 < head.length && /^\S+$/.test(tail) && /[-=|]|^\d+$/.test(tail) && letters * 2 <= tail.length;
 }
 
 function expandTabs(line) {
@@ -226,7 +268,9 @@ function splitLabel(line, allowDashLabel) {
 // "|--0--|  x2", "|--0--| <- let ring", "|--0--|x2".
 function splitTrailing(rest) {
   let end = 0;
-  for (const m of rest.matchAll(/\S+/g)) {
+  // A space inside brackets, as in the "( )" of a fretboard picture, does
+  // not end the staff part.
+  for (const m of rest.matchAll(/(?:\([^()]{0,3}\)|\S)+/g)) {
     if (end > 0 && !isStaffRun(m[0])) break;
     end = m.index + m[0].length;
   }

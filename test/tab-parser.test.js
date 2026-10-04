@@ -360,3 +360,58 @@ D-|========|---------|
   assert.deepEqual(staff.barlines, [0, 9, 19]);
   assert.deepEqual(staff.strings[3].tokens, [{ col: 1, text: '========', kind: 'mark' }]);
 });
+
+test('puts string lines back together that a mail program broke in two', () => {
+  // every string line is 75 characters long and was cut after 72
+  const cut = (notes) => `|${notes}${'-'.repeat(71 - notes.length)}`;
+  const doc = parseTab(
+    [
+      'Lick:',
+      '',
+      cut('-15-14-12'), '--|',
+      cut('----------15-13-12'), '--|',
+      `|${'-'.repeat(65)}12---1`, '2-|', // the break falls inside a fret number
+      cut(''), '--|',
+      cut(''), '--|',
+      cut(''), '3-|',
+      '',
+      'The end.',
+    ].join('\n'),
+  );
+  const [staff] = staves(doc);
+  assert.equal(staves(doc).length, 1);
+  assert.equal(staff.strings.length, 6);
+  assert.equal(staff.width, 75);
+  assert.deepEqual(staff.barlines, [0, 74]);
+  assert.deepEqual(frets(staff.strings[0]), ['2:15', '5:14', '8:12']);
+  assert.deepEqual(frets(staff.strings[2]), ['66:12', '71:12']);
+  assert.deepEqual(frets(staff.strings[5]), ['72:3']);
+  assert.equal(textOf(doc), 'Lick:\nThe end.');
+});
+
+test('leaves short lines alone that only happen to follow long string lines', () => {
+  const full = `|${'-'.repeat(70)}|`; // complete lines, not cut off
+  const doc = parseTab([full, full, full, full, 'x2', '', `${'-'.repeat(72)}`, '--', `${'-'.repeat(72)}`, 'ok'].join('\n'));
+  assert.equal(staves(doc)[0].width, 72);
+  assert.deepEqual(staves(doc)[0].below.map(words), [['0:x2']]);
+  assert.equal(textOf(doc), `${'-'.repeat(72)}\n--\n${'-'.repeat(72)}\nok`);
+});
+
+test('reads a fretboard picture with "( )" markers', () => {
+  const doc = parseTab(`|--(x)--|------|--( )--|
+|--( )--|------|--( )--|
+|--( )--|--( )-|-------|
+|--( )--|--(x)-|-------|
+V. (Fret)
+`);
+  const [staff] = staves(doc);
+  assert.equal(staff.strings.length, 4);
+  assert.deepEqual(staff.barlines, [0, 8, 15, 23]);
+  assert.equal(staff.strings[0].cells, '|--(x)--|------|--( )--|');
+  assert.deepEqual(
+    staff.strings[0].tokens.map((token) => `${token.col}:${token.text}`),
+    ['3:(x)', '18:(', '20:)'],
+  );
+  assert.ok(staff.strings.every((string) => string.trailing === ''));
+  assert.deepEqual(staff.below.map(words), [['0:V.', '3:(Fret)']]);
+});
