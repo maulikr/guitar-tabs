@@ -55,7 +55,9 @@ keep it on your home network.
 - Uploading never overwrites: the same file again changes nothing, and a
   different file with a name that is taken is stored as `name-2.tab`.
 - **Original text** shows the file as it was typed, to compare with the drawing.
-- **Print** gives a clean sheet without the list and the buttons.
+- **Print** gives a clean sheet without the list and the buttons. Page breaks
+  fall between staves and between paragraphs of text, not inside them. Only a
+  paragraph longer than 25 lines can be split.
 - **Delete** removes the file from the `tabs/` folder.
 
 Files can be up to 1 MB and must be text.
@@ -78,6 +80,8 @@ lines that are mostly dashes and groups neighbouring ones into a staff.
   `PM----|`) stay with it, on their columns. Other text is shown as typed.
 - The notice and mail header that archives put on top of a file are folded
   away under "File header".
+- Long string lines that a mail program broke in two, leaving an end such as
+  `--|` on a line of its own, are put back together.
 - A staff that is too wide for the page is first drawn tighter and then
   wrapped, at bar lines where possible.
 

@@ -243,6 +243,10 @@ summary:focus-visible {
   overflow-wrap: anywhere;
 }
 
+.tab-text .para {
+  display: block;
+}
+
 .file-header {
   font-size: 13px;
   color: var(--muted);
@@ -413,8 +417,10 @@ summary:focus-visible {
     box-shadow: none;
   }
 
+  /* Not the whole text: a block taller than a page would move to the next
+     page and leave this one empty. */
   .staff,
-  .tab-text {
+  .tab-text .keep {
     break-inside: avoid;
   }
 }

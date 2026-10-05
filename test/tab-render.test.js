@@ -107,8 +107,8 @@ ${SIX_STRINGS}
 Then the chorus.
 `);
   assert.match(html, /<details class="file-header"><summary>File header<\/summary><pre>#---- PLEASE NOTE ----#\nSubject: a tab<\/pre><\/details>/);
-  assert.match(html, /<pre class="tab-text">Intro riff:<\/pre>/);
-  assert.match(html, /<pre class="tab-text">Then the chorus.<\/pre>/);
+  assert.match(html, /<pre class="tab-text"><span class="para keep">Intro riff:\n<\/span><\/pre>/);
+  assert.match(html, /<pre class="tab-text"><span class="para keep">Then the chorus.\n<\/span><\/pre>/);
   assert.ok(html.indexOf('Intro riff') < html.indexOf('<svg') && html.indexOf('<svg') < html.indexOf('Then the chorus'));
 });
 
@@ -129,5 +129,23 @@ test('never lets text from a file through as markup', () => {
 
 test('a document without staves is only text', () => {
   const html = render('Just some words.\nAnd more.');
-  assert.equal(html, '<pre class="tab-text">Just some words.\nAnd more.</pre>');
+  assert.equal(html, '<pre class="tab-text"><span class="para keep">Just some words.\nAnd more.\n</span></pre>');
+});
+
+test('puts every paragraph of the text in a block of its own, for page breaks', () => {
+  const html = render('First one.\nStill the first.\n\n\nSecond one.\n\nThird.');
+  assert.equal(
+    html,
+    '<pre class="tab-text">' +
+      '<span class="para keep">First one.\nStill the first.\n\n\n</span>' +
+      '<span class="para keep">Second one.\n\n</span>' +
+      '<span class="para keep">Third.\n</span>' +
+      '</pre>',
+  );
+});
+
+test('lets a paragraph too long to keep on one page be split', () => {
+  const long = Array.from({ length: 26 }, (_, i) => `line ${i + 1}`).join('\n');
+  const html = render(`${long}\n\nshort`);
+  assert.match(html, /<span class="para">line 1\n[^<]*line 26\n\n<\/span><span class="para keep">short\n<\/span>/);
 });

@@ -23,6 +23,9 @@ const MIN_WIDTH = 200;
 const MIN_ROW_COLS = 12;
 // Longer comments after a string go below the staff instead of beside it.
 const MAX_TRAILING_CHARS = 24;
+// A paragraph of text up to this long stays on one page when printed. A
+// longer one would leave too much of a page empty.
+const MAX_KEPT_LINES = 25;
 const STANDARD_TUNING = ['E', 'B', 'G', 'D', 'A', 'E'];
 // Marks that draw a line along the string rather than spell something.
 const DRAWN_LINE = /^[~=._^*]{2,}$/;
@@ -42,13 +45,38 @@ export function renderDocument(doc, options = {}) {
   return doc.sections
     .map((section) => {
       if (section.type === 'staff') return renderStaff(section, layouts.get(section), colWidth);
-      const text = esc(section.lines.join('\n'));
       if (section.type === 'header') {
+        const text = esc(section.lines.join('\n'));
         return `<details class="file-header"><summary>File header</summary><pre>${text}</pre></details>`;
       }
-      return `<pre class="tab-text">${text}</pre>`;
+      return renderText(section.lines);
     })
     .join('\n');
+}
+
+/**
+ * Text as it was typed, with every paragraph in a block of its own: a page
+ * break may fall between paragraphs, but not inside a short one, which is
+ * often a diagram drawn with characters.
+ * @param {string[]} lines
+ */
+function renderText(lines) {
+  // A paragraph takes the blank lines after it along.
+  const paragraphs = [];
+  lines.forEach((line, i) => {
+    if (i === 0 || (line !== '' && lines[i - 1] === '')) paragraphs.push([]);
+    paragraphs[paragraphs.length - 1].push(line);
+  });
+  const html = paragraphs
+    .map((paragraph) => {
+      const kept = paragraph.filter((line) => line !== '').length <= MAX_KEPT_LINES;
+      // Every line ends with a line break, also the last: as a block, the
+      // paragraph is then exactly as tall as its lines.
+      const text = esc(paragraph.map((line) => `${line}\n`).join(''));
+      return `<span class="${kept ? 'para keep' : 'para'}">${text}</span>`;
+    })
+    .join('');
+  return `<pre class="tab-text">${html}</pre>`;
 }
 
 // The room a staff needs around its columns.
@@ -100,7 +128,7 @@ function renderStaff(staff, { frame, rows }, colWidth) {
     .join('');
   if (!frame.trailingBeside) {
     const comments = staff.strings.map((string) => string.trailing).filter(Boolean);
-    if (comments.length) html += `<pre class="tab-text">${esc(comments.join('\n'))}</pre>`;
+    if (comments.length) html += renderText(comments);
   }
   return `<div class="staff-block">${html}</div>`;
 }
